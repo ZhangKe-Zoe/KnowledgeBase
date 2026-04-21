@@ -4,6 +4,10 @@ import { VitePWA } from 'vite-plugin-pwa';
 import path from 'node:path';
 
 export default defineConfig({
+  // 部署到子路径（如 GitHub Pages https://<user>.github.io/<repo>/）时，
+  // 通过环境变量 BASE 传入，例如 BASE=/KnowledgeBase/ npm run build。
+  // 部署到根域名（Vercel / Netlify / Cloudflare Pages）时留空即可。
+  base: process.env.BASE || '/',
   resolve: {
     alias: { '@': path.resolve(__dirname, 'src') },
   },
