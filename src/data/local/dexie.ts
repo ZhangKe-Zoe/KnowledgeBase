@@ -73,3 +73,36 @@ export async function loadFundList(maxAgeMs = 7 * 24 * 3600 * 1000): Promise<Fun
   if (Date.now() - row.fetchedAt > maxAgeMs) return null;
   return row.list;
 }
+
+// --- 备份 / 恢复（JSON）-----------------------------------------------
+// 只导出用户产生的数据：自选、策略、回测。基金行情数据不导出（可从网络重新拉）。
+export interface BackupBundle {
+  version: 1;
+  exportedAt: number;
+  watchlist: WatchlistItem[];
+  strategies: StrategyDef[];
+  backtests: BacktestRun[];
+}
+
+export async function exportBackup(): Promise<BackupBundle> {
+  const [watchlist, strategies, backtests] = await Promise.all([
+    db.watchlist.toArray(),
+    db.strategies.toArray(),
+    db.backtests.toArray(),
+  ]);
+  return { version: 1, exportedAt: Date.now(), watchlist, strategies, backtests };
+}
+
+export async function importBackup(bundle: BackupBundle): Promise<{ watchlist: number; strategies: number; backtests: number }> {
+  if (bundle.version !== 1) throw new Error(`不支持的备份版本: ${bundle.version}`);
+  await db.transaction('rw', db.watchlist, db.strategies, db.backtests, async () => {
+    if (bundle.watchlist?.length) await db.watchlist.bulkPut(bundle.watchlist);
+    if (bundle.strategies?.length) await db.strategies.bulkPut(bundle.strategies);
+    if (bundle.backtests?.length) await db.backtests.bulkPut(bundle.backtests);
+  });
+  return {
+    watchlist: bundle.watchlist?.length ?? 0,
+    strategies: bundle.strategies?.length ?? 0,
+    backtests: bundle.backtests?.length ?? 0,
+  };
+}
