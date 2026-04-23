@@ -1,0 +1,37 @@
+{
+  "name": "fundquant",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "基金量化交易 PWA — Qlib 风格策略回测 + 行情看盘，可在 iPhone 16 本地安装",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host",
+    "test": "vitest run",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "dexie": "^4.0.8",
+    "echarts": "^5.5.1",
+    "pako": "^2.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.5",
+    "@types/pako": "^2.0.3",
+    "@types/react": "^18.3.9",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.7",
+    "vite-plugin-pwa": "^0.20.5",
+    "vitest": "^2.1.1"
+  }
+}
