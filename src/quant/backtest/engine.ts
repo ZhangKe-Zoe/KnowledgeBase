@@ -1,4 +1,4 @@
-import type { FundProfile, StrategyDef, BacktestRun } from '../../data/types';
+import type { FundProfile, StrategyDef, BacktestRun, RebalanceSnapshot } from '../../data/types';
 import { buildDataset } from '../data/dataset';
 import { parse } from '../expr/parser';
 import { evaluateAll } from '../expr/evaluator';
@@ -16,6 +16,10 @@ export function runBacktest(profiles: FundProfile[], strategy: StrategyDef): Bac
   const factorAst = parse(strategy.expr);
   const factorPerCode = evaluateAll(factorAst, data);
 
+  // code → name 映射，用于调仓快照里回填基金名
+  const codeToName = new Map<string, string>();
+  for (const p of profiles) codeToName.set(p.code, p.name);
+
   const navCols = data.fields.nav;
   const portfolio = new Portfolio(strategy.initialCash, {
     buyFee: strategy.buyFee,
@@ -23,6 +27,7 @@ export function runBacktest(profiles: FundProfile[], strategy: StrategyDef): Bac
   });
 
   const equity: Array<{ date: string; value: number }> = [];
+  const rebalances: RebalanceSnapshot[] = [];
   let totalTrades = 0;
   const T = data.dates.length;
 
@@ -49,6 +54,16 @@ export function runBacktest(profiles: FundProfile[], strategy: StrategyDef): Bac
         const target = new Map<string, number>();
         for (const p of picks) target.set(p.code, w);
         totalTrades += portfolio.rebalance(target, navByCode);
+
+        rebalances.push({
+          date: data.dates[t],
+          picks: picks.map((p) => ({
+            code: p.code,
+            name: codeToName.get(p.code) ?? p.code,
+            score: p.score,
+            weight: w,
+          })),
+        });
       }
     }
 
@@ -63,6 +78,8 @@ export function runBacktest(profiles: FundProfile[], strategy: StrategyDef): Bac
     ranAt: Date.now(),
     equity,
     trades: totalTrades,
+    rebalances,
+    finalTargets: rebalances.length > 0 ? rebalances[rebalances.length - 1] : null,
     metrics: {
       totalReturn: totalReturn(values),
       annualReturn: annualReturn(values),

@@ -4,6 +4,7 @@ import { useStrategy } from '../store/strategy';
 import { useWatchlist } from '../store/watchlist';
 import { FACTORS } from '../quant/factors';
 import { parse } from '../quant/expr/parser';
+import { DataBackup } from '../components/DataBackup';
 import type { StrategyDef } from '../data/types';
 
 const DEFAULT_STRATEGY: Omit<StrategyDef, 'id' | 'universe'> = {
@@ -165,6 +166,8 @@ export function Strategy() {
           </div>
         </div>
       )}
+
+      <DataBackup />
 
       {strategies.length === 0 && (
         <div className="text-xs text-slate-500 text-center">

@@ -41,6 +41,8 @@ export interface WatchlistItem {
   code: string;
   name: string;
   addedAt: number;
+  held?: boolean;        // 是否实际持有
+  amount?: number;       // 持仓金额（元，可选）
 }
 
 export interface StrategyDef {
@@ -55,6 +57,12 @@ export interface StrategyDef {
   buyFee: number;          // 申购费
   sellFee: number;         // 赎回费
   initialCash: number;
+}
+
+// 一次调仓的快照
+export interface RebalanceSnapshot {
+  date: string;                              // 调仓日
+  picks: Array<{ code: string; name: string; score: number; weight: number }>;
 }
 
 export interface BacktestRun {
@@ -72,4 +80,6 @@ export interface BacktestRun {
     totalReturn: number;
   };
   trades: number;
+  rebalances: RebalanceSnapshot[];           // 所有历次调仓
+  finalTargets: RebalanceSnapshot | null;    // 最后一次调仓 = 当前建议持仓
 }
