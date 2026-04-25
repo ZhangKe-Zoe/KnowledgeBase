@@ -7,8 +7,9 @@ interface WatchlistState {
   loaded: boolean;
   load: () => Promise<void>;
   add: (code: string, name: string, held?: boolean) => Promise<void>;
-  bulkAdd: (picks: Array<{ code: string; name: string }>, held: boolean) => Promise<void>;
+  bulkAdd: (picks: Array<{ code: string; name: string; amount?: number }>, held: boolean) => Promise<void>;
   toggleHeld: (code: string) => Promise<void>;
+  setAmount: (code: string, amount: number | undefined) => Promise<void>;
   remove: (code: string) => Promise<void>;
 }
 
@@ -43,7 +44,8 @@ export const useWatchlist = create<WatchlistState>((set, get) => ({
           name: p.name,
           addedAt: existing?.addedAt ?? now + i,
           held,
-          amount: existing?.amount,
+          // 截图新读取的 amount 优先于已有的（让用户每次截图都能更新持仓）
+          amount: p.amount ?? existing?.amount,
         };
       }),
     );
@@ -55,6 +57,13 @@ export const useWatchlist = create<WatchlistState>((set, get) => ({
     const it = await db.watchlist.get(code);
     if (!it) return;
     await db.watchlist.put({ ...it, held: !it.held });
+    await get().load();
+  },
+
+  async setAmount(code, amount) {
+    const it = await db.watchlist.get(code);
+    if (!it) return;
+    await db.watchlist.put({ ...it, amount });
     await get().load();
   },
 

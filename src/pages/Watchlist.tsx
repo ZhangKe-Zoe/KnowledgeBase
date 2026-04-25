@@ -5,10 +5,11 @@ import { fetchRealtime, fetchFundList } from '../data/remote/eastmoney';
 import { loadFundList, saveFundList } from '../data/local/dexie';
 import { FundCard } from '../components/FundCard';
 import { ImportScreenshot } from '../components/ImportScreenshot';
+import { HoldingDiagnosis } from '../components/HoldingDiagnosis';
 import type { FundRealtime, FundMeta } from '../data/types';
 
 export function Watchlist() {
-  const { items, loaded, load, remove, toggleHeld, bulkAdd } = useWatchlist();
+  const { items, loaded, load, remove, toggleHeld, bulkAdd, setAmount } = useWatchlist();
   const [realtimeMap, setRealtimeMap] = useState<Record<string, FundRealtime>>({});
   const [refreshing, setRefreshing] = useState(false);
   const [ocrOpen, setOcrOpen] = useState(false);
@@ -77,6 +78,8 @@ export function Watchlist() {
         </div>
       )}
 
+      {heldCount > 0 && <HoldingDiagnosis items={items} />}
+
       {items.length === 0 && loaded && (
         <div className="card text-sm text-slate-400 text-center space-y-2">
           <div>尚未添加任何基金</div>
@@ -97,6 +100,8 @@ export function Watchlist() {
               code={it.code}
               name={it.name}
               realtime={realtimeMap[it.code]}
+              amount={it.amount}
+              onAmountChange={it.held ? (v) => setAmount(it.code, v) : undefined}
               onRemove={() => remove(it.code)}
             />
             <button

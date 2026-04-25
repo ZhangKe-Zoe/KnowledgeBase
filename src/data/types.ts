@@ -63,6 +63,7 @@ export interface StrategyDef {
 export interface RebalanceSnapshot {
   date: string;                              // 调仓日
   picks: Array<{ code: string; name: string; score: number; weight: number }>;
+  universeSize?: number;                     // 当日参与打分的基金数（用于排名 N/M）
 }
 
 export interface BacktestRun {

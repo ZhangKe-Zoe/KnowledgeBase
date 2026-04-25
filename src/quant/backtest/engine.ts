@@ -57,6 +57,7 @@ export function runBacktest(profiles: FundProfile[], strategy: StrategyDef): Bac
 
         rebalances.push({
           date: data.dates[t],
+          universeSize: scores.length,
           picks: picks.map((p) => ({
             code: p.code,
             name: codeToName.get(p.code) ?? p.code,
