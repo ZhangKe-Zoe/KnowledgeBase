@@ -223,3 +223,53 @@ describe('extractAmount — 边界', () => {
     expect(extractAmount('5229.02 +1344.03 0.00', 0)).toBe(5229.02);
   });
 });
+
+describe('detectFunds — 鲁棒性（针对真实 tesseract 输出）', () => {
+  it('容忍字间空格："博 时 黄 金 ETF 联 接 C"', () => {
+    const text = '博 时 黄 金 ETF 联 接 C 持有金额 9,241.68';
+    const hits = detectFunds(text, FUND_LIST);
+    const target = hits.find((h) => h.name === '博时黄金ETF联接C');
+    expect(target).toBeDefined();
+    expect(target?.amount).toBe(9241.68);
+    expect(target?.matchedBy).toBe('fuzzy');
+  });
+
+  it('容忍全角括号：兴全合润混合（LOF）A', () => {
+    const text = '兴全合润混合（LOF）A 持有金额 3,166.65 持仓收益 +729.89';
+    const hits = detectFunds(text, FUND_LIST);
+    const target = hits.find((h) => h.name === '兴全合润混合(LOF)A');
+    expect(target).toBeDefined();
+    expect(target?.amount).toBe(3166.65);
+    expect(target?.matchedBy).toBe('fuzzy');
+  });
+
+  it('容忍 ETF 大小写："博时黄金etf联接C"', () => {
+    const text = '博时黄金etf联接C 9,241.68';
+    const hits = detectFunds(text, FUND_LIST);
+    const target = hits.find((h) => h.name === '博时黄金ETF联接C');
+    expect(target).toBeDefined();
+    expect(target?.amount).toBe(9241.68);
+  });
+
+  it('混合 — 部分原文精确、部分需要 fuzzy', () => {
+    const text = `
+博时黄金ETF联接C
+持有金额 9,241.68
+博 时 标 普 500 ETF 联 接 A
+5,229.02
+`;
+    const hits = detectFunds(text, FUND_LIST);
+    const byName = new Map(hits.map((h) => [h.name, h]));
+    expect(byName.get('博时黄金ETF联接C')?.matchedBy).toBe('name');
+    expect(byName.get('博时标普500ETF联接A')?.matchedBy).toBe('fuzzy');
+    expect(byName.get('博时标普500ETF联接A')?.amount).toBe(5229.02);
+  });
+
+  it('鲁棒性不会误击穿：相似名字不会被误识为另一只', () => {
+    // FUND_LIST 里有 "华安黄金易ETF联接A" (干扰项)。OCR 文本只含 "华安黄金ETF联接C"。
+    const text = '华安黄金ETF联接C 持有金额 3,174.70';
+    const hits = detectFunds(text, FUND_LIST);
+    expect(hits.find((h) => h.name === '华安黄金ETF联接C')).toBeDefined();
+    expect(hits.find((h) => h.name === '华安黄金易ETF联接A')).toBeUndefined();
+  });
+});
