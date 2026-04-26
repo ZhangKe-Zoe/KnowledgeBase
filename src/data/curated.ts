@@ -13,6 +13,7 @@ export interface CuratedFund {
 export type CuratedCategory =
   | 'A股宽基'
   | 'A股行业'
+  | '科技AI'
   | '红利价值'
   | '美股QDII'
   | '港股'
@@ -33,8 +34,15 @@ export const CURATED_POOL: CuratedFund[] = [
   { code: '161725', name: '招商中证白酒指数(LOF)A', category: 'A股行业' },
   { code: '110022', name: '易方达消费行业股票', category: 'A股行业' },
   { code: '003095', name: '中欧医疗健康混合A', category: 'A股行业' },
-  { code: '001595', name: '天弘中证电子A', category: 'A股行业' },
   { code: '001508', name: '富国新能源汽车', category: 'A股行业' },
+  { code: '217021', name: '招商中证银行指数A', category: 'A股行业' },
+
+  // —— 科技 / AI / 半导体 ——
+  { code: '012739', name: '天弘中证人工智能主题指数A', category: '科技AI' },
+  { code: '008888', name: '华夏国证半导体芯片ETF联接C', category: '科技AI' },
+  { code: '001595', name: '天弘中证电子A', category: '科技AI' },
+  { code: '009829', name: '华安智能装备主题股票C', category: '科技AI' },
+  { code: '011102', name: '天弘中证电网设备主题指数C', category: '科技AI' },
 
   // —— 红利价值 ——
   { code: '510880', name: '红利ETF', category: '红利价值' },
@@ -54,6 +62,8 @@ export const CURATED_POOL: CuratedFund[] = [
   // —— 黄金/商品 ——
   { code: '000216', name: '华安黄金易ETF联接A', category: '黄金' },
   { code: '320013', name: '诺安全球黄金(QDII)', category: '黄金' },
+  { code: '002610', name: '博时黄金ETF联接C', category: '黄金' },
+  { code: '012709', name: '易方达黄金ETF联接C', category: '黄金' },
 
   // —— 债券 ——
   { code: '110017', name: '易方达增强回报A', category: '债券' },

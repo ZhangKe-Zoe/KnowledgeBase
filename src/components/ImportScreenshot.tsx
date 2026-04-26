@@ -1,13 +1,9 @@
 import { useState } from 'react';
 import type { FundMeta } from '../data/types';
+import { detectFunds, type Detected as RawDetected } from './import-detect';
 
-interface Detected {
-  code: string;
-  name: string;
-  type: string;
+interface Detected extends RawDetected {
   selected: boolean;
-  amount?: number;        // 从截图里提取的"持有金额"，可由用户修正
-  matchedBy: 'code' | 'name';
 }
 
 interface Props {
@@ -52,7 +48,7 @@ export function ImportScreenshot({ fundList, onConfirm, onClose }: Props) {
       });
 
       const text = result.data.text;
-      const hits = detectFunds(text, fundList);
+      const hits: Detected[] = detectFunds(text, fundList).map((d) => ({ ...d, selected: true }));
 
       setDetected(hits);
       setStage('done');
@@ -170,64 +166,3 @@ export function ImportScreenshot({ fundList, onConfirm, onClose }: Props) {
   );
 }
 
-// 在锚点位置附近抓"持有金额"。OCR 出来的金额一般是
-//   9,279.79  或  5248.02  这种两位小数模式。
-// 持仓金额通常 100 ~ 千万，避开占比/百分比/净值。
-function extractAmount(text: string, fromIdx: number): number | undefined {
-  const window = text.substring(fromIdx, fromIdx + 200);
-  const re = /(\d{1,3}(?:,\d{3})+\.\d{2}|\d{3,7}\.\d{2})/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(window)) !== null) {
-    const v = parseFloat(m[1].replace(/,/g, ''));
-    // 持仓金额合理区间。排除 "占比 8.20" / "+8.99%" / 净值 1.23
-    if (v >= 100 && v < 1e7) return v;
-  }
-  return undefined;
-}
-
-// 把 OCR 文本里的基金名 / 代码匹配回 fundList。
-// 1) 6 位代码精确匹配（最可靠）
-// 2) 中文名子串匹配（按名字长度倒序，避免短名误匹配）
-function detectFunds(text: string, fundList: FundMeta[]): Detected[] {
-  const found = new Map<string, Detected>();
-  const byCode = new Map<string, FundMeta>();
-  for (const f of fundList) byCode.set(f.code, f);
-
-  // 1) 代码匹配
-  const codeRe = /\b\d{6}\b/g;
-  let m: RegExpExecArray | null;
-  while ((m = codeRe.exec(text)) !== null) {
-    const f = byCode.get(m[0]);
-    if (f && !found.has(f.code)) {
-      found.set(f.code, {
-        code: f.code,
-        name: f.name,
-        type: f.type,
-        selected: true,
-        amount: extractAmount(text, m.index + 6),
-        matchedBy: 'code',
-      });
-    }
-  }
-
-  // 2) 名称子串匹配
-  const sorted = [...fundList]
-    .filter((f) => f.name.length >= 5)
-    .sort((a, b) => b.name.length - a.name.length);
-  for (const f of sorted) {
-    if (found.has(f.code)) continue;
-    const idx = text.indexOf(f.name);
-    if (idx >= 0) {
-      found.set(f.code, {
-        code: f.code,
-        name: f.name,
-        type: f.type,
-        selected: true,
-        amount: extractAmount(text, idx + f.name.length),
-        matchedBy: 'name',
-      });
-    }
-  }
-
-  return Array.from(found.values());
-}
