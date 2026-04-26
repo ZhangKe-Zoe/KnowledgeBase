@@ -5,6 +5,7 @@ import { FundDetail } from './pages/FundDetail';
 import { Strategy } from './pages/Strategy';
 import { Backtest } from './pages/Backtest';
 import { Report } from './pages/Report';
+import { Recommend } from './pages/Recommend';
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/watchlist" replace />} />
           <Route path="/market" element={<Market />} />
           <Route path="/watchlist" element={<Watchlist />} />
+          <Route path="/recommend" element={<Recommend />} />
           <Route path="/fund/:code" element={<FundDetail />} />
           <Route path="/strategy" element={<Strategy />} />
           <Route path="/backtest/:strategyId" element={<Backtest />} />
@@ -22,6 +24,7 @@ export default function App() {
       </main>
       <nav className="fixed bottom-0 inset-x-0 flex border-t border-slate-800 bg-slate-900/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
         <Tab to="/watchlist" label="自选" />
+        <Tab to="/recommend" label="推荐" />
         <Tab to="/market" label="行情" />
         <Tab to="/strategy" label="策略" />
       </nav>
